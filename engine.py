@@ -1,4 +1,4 @@
-from graph import *
+import math
 
 class Value:
     def __init__(self,data,_children=(),_op="", label = ""):
@@ -44,11 +44,13 @@ class Value:
 
         return out
     
-    def relu(self):
-        out = Value(0 if self.data < 0 else self.data, (self,),'ReLU')
+    def tanh(self):
+        x = self.data
+        t = (math.exp(2*x)-1)/(math.exp(2*x)+1)
+        out = Value(t,(self,),'tanh')
 
         def _backward():
-            self.grad += (out.data > 0)* out.grad
+            self.grad += (1 - t ** 2) * out.grad
         out._backward = _backward
 
         return out
@@ -71,38 +73,15 @@ class Value:
     def __neg__(self):
         return self * -1
     
-    def __radd__(self,other):
-        return self + other
     
     def __sub__(self,other):
         return self + (-other)
     
-    def __rsub__(self,other):
-        return other + (-self)
-    
-    def __rmul__(self,other):
-        return self * other
-    
+   
+   
     def __truediv__(self,other):
         return self * other**-1
     
-    def __rtruediv__(self,other):
-        return other * self**-1
+   
     
-    def __repr__(self):
-        return f"Value(data={self.data},grad={self.grad})"
     
-        
-a = Value(2.0 , label = 'a')
-b = Value(-3.0, label = 'b')
-c = Value(10.0, label = 'c')
-e = a * b ; e.label = 'e'
-d = e + c; d.label = 'd'
-f = Value(-2.0,label='f')
-L = d * f ; L.label = 'L'
-
-print("ans=",L)
-L.backward()
-
-dot = draw_dot(L)
-dot.render('graph_output', format='png', view=True)
